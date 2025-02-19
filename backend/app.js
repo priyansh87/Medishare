@@ -5,6 +5,7 @@ import cors from "cors";
 import morgan from "morgan";
 
 import userRoute from "./routes/user.routes.js"
+import { multerErrorHandler } from "./middlewares/multer.middleware.js";
 dotenv.config() ; 
 
 
@@ -24,6 +25,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan("dev"));
+  // Add the error handler middleware after all routes
+  app.use(multerErrorHandler);
 app.get("/", (req, res) => {
   res.send("Hello World");
 });

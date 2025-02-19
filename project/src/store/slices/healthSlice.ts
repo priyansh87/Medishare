@@ -1,5 +1,31 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { HealthReport } from '../../types';
+
+// Define the structure of the API response
+interface PatientInfo {
+  name: string;
+  age: number;
+  gender: string | null;
+}
+
+interface Medication {
+  name: string | null;
+  dosage: string | null;
+}
+
+interface Diagnosis {
+  condition: string;
+  medication: Medication;
+}
+
+interface HealthReport {
+  message: string;
+  result: {
+    patientInfo: PatientInfo;
+    diagnoses: Diagnosis[];
+    keyInsights: string[];
+    recommendations: string[];
+  };
+}
 
 interface HealthState {
   reports: HealthReport[];

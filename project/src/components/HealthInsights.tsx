@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import axiosInstance from '../config/axios.config.ts'
 import { FileText, Brain, AlertCircle } from 'lucide-react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store';
+import { useDispatch } from 'react-redux';
 import { setCurrentReport, addReport } from '../store/slices/healthSlice';
 import { useNavigate } from 'react-router-dom';
 
 export default function HealthInsights() {
+
   const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -17,46 +19,28 @@ export default function HealthInsights() {
     }
   };
 
-  const handleAnalyze = () => {
-    if (file) {
-      // Simulated report analysis - in a real app, this would be an API call
-      const mockReport = {
-        id: Date.now().toString(),
-        userId: 'user123',
-        uploadDate: new Date().toISOString(),
-        summary: 'Annual Health Checkup Report',
-        insights: [
-          'Blood pressure is slightly elevated',
-          'Cholesterol levels are within normal range',
-          'Vitamin D deficiency detected'
-        ],
-        recommendations: [
-          'Consider reducing sodium intake',
-          'Maintain current exercise routine',
-          'Start Vitamin D supplementation'
-        ],
-        patientInfo: {
-          name: 'John Doe',
-          age: 35,
-          gender: 'Male'
-        },
-        diagnoses: [
-          {
-            condition: 'Mild Hypertension',
-            medications: [
-              {
-                name: 'Amlodipine',
-                dosage: '5mg',
-                frequency: 'Once daily'
-              }
-            ]
-          }
-        ]
-      };
+  const handleAnalyze = async () => {
+    if (!file) return;
 
-      dispatch(addReport(mockReport));
-      dispatch(setCurrentReport(mockReport));
+    setLoading(true);
+    const formData = new FormData();
+    formData.append('pdfFile', file);
+
+    try {
+      const response = await axiosInstance.post('http://localhost:8000/users/upload', formData, {
+      });
+      console.log(response)
+
+      const report = response.data;
+
+      dispatch(addReport(report));
+      dispatch(setCurrentReport(report));
       navigate('/report-analysis');
+    } catch (error) {
+      console.error('Error analyzing report:', error);
+      alert('Failed to analyze the report. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -95,9 +79,10 @@ export default function HealthInsights() {
                 </div>
                 <button
                   onClick={handleAnalyze}
-                  className="w-full bg-emerald-600 text-white py-2 px-4 rounded-md hover:bg-emerald-700 transition-colors"
+                  className="w-full bg-emerald-600 text-white py-2 px-4 rounded-md hover:bg-emerald-700 transition-colors disabled:bg-gray-400"
+                  disabled={loading}
                 >
-                  Analyze Report
+                  {loading ? 'Analyzing...' : 'Analyze Report'}
                 </button>
               </div>
             )}
@@ -110,7 +95,7 @@ export default function HealthInsights() {
                 <h3 className="font-medium text-gray-900">AI Analysis</h3>
               </div>
               <p className="text-sm text-gray-500">
-                Upload your health report to get AI-powered insights and recommendations
+                Upload your health report to get AI-powered insights and recommendations.
               </p>
             </div>
 

@@ -3,6 +3,11 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+
+export const uploadMedicalReport = async ( req , res ) => {
+    console.log(req.file, req.body)
+}
+
 // Register User
 export const registerUser = async (req, res) => {
     try {
