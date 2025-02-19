@@ -17,7 +17,7 @@ Welcome to **MediShare**, an innovative platform designed to transform healthcar
 
 ## Introduction
 
-In today's fast-paced world, accessing accurate medical information and authentic medications is crucial. **MedConnect** addresses these challenges by offering:
+In today's fast-paced world, accessing accurate medical information and authentic medications is crucial. **MediShare** addresses these challenges by offering:
 
 - **Comprehensive Medical Summaries**: Upload medical reports to receive concise summaries, including diagnosed conditions, prescribed medications with their uses, and personalized lifestyle suggestions.
 - **Medication Verification**: Scan medication QR codes to obtain detailed information, verify authenticity via blockchain, and prevent counterfeit drug usage.
