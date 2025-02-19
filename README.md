@@ -47,7 +47,7 @@ Our smart scanning feature enables users to:
 
 ### 3. Medicine Donation Network
 
-**MedConnect** fosters a community of care by enabling:
+**MediShare** fosters a community of care by enabling:
 
 - **Donations of Unused Medications**: Individuals can donate unexpired medicines to those in need.
 - **Collaboration with Hospitals and NGOs**: Streamlined processes for organizations to distribute medications effectively.
@@ -70,7 +70,7 @@ Our smart scanning feature enables users to:
 
 ## Architecture
 
-**MedConnect** is built with a modular architecture:
+**MediShare** is built with a modular architecture:
 
 - **API Gateway**: Manages and routes user requests efficiently.
 - **AI Service**: Processes medical reports and generates summaries with lifestyle recommendations.
@@ -102,5 +102,5 @@ For collaboration, questions, or further information, please reach out:
 - **Email:** priyansh56701@gmail.com
 - **LinkedIn:** [Arman Singh](https://www.linkedin.com/in/arman-singh-9bb83628a/)
 
-Join us in redefining healthcare. With MedConnect, every medical report is simplified, every medication verified, and every donation transparently managed. Let's build a healthier future—together.
+Join us in redefining healthcare. With MediShare, every medical report is simplified, every medication verified, and every donation transparently managed. Let's build a healthier future—together.
 ``` 
