@@ -1,9 +1,8 @@
-import React from 'react';
-import { Upload } from 'lucide-react';
+import React, { useState } from 'react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import {
-  setFile,
   setMedicineName,
   setExpiryDate,
   setQuantity,
@@ -12,129 +11,143 @@ import {
 
 export default function Scanner() {
   const dispatch = useDispatch();
-  const { file, medicineName, expiryDate, quantity } = useSelector(
+  const { medicineName, expiryDate, quantity } = useSelector(
     (state: RootState) => state.upload
   );
+  const [scanResult, setScanResult] = useState<string | null>(null);
+  const [batchNumber, setBatchNumber] = useState<string | null>(null);
+  const [brand, setBrand] = useState<string | null>(null);
+  const [manufacturerDetails, setManufacturerDetails] = useState<string | null>(null);
+  const [scanner, setScanner] = useState<Html5QrcodeScanner | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files && files[0]) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        dispatch(setFile(reader.result as string));
-      };
-      reader.readAsDataURL(files[0]);
+  const startScan = () => {
+    if (!isScanning) {
+      const newScanner = new Html5QrcodeScanner(
+        'qr-reader',
+        { fps: 10, qrbox: 250 },
+        false
+      );
+
+      newScanner.render(
+        (decodedText) => {
+          console.log('Scanned Data:', decodedText);
+          setScanResult(decodedText);
+          try {
+            const parsedData = JSON.parse(decodedText);
+            dispatch(setMedicineName(parsedData.name || ''));
+            dispatch(setExpiryDate(parsedData.expiryDate || ''));
+            dispatch(setQuantity(parsedData.quantity || 1));
+            setBatchNumber(parsedData.batchNumber || '');
+            setBrand(parsedData.brand || '');
+            setManufacturerDetails(parsedData.manufacturerDetails || '');
+          } catch (error) {
+            console.error('Error parsing QR code data:', error);
+          }
+          newScanner.clear(); // Close scanner after successful scan
+          setIsScanning(false);
+        },
+        (errorMessage) => {
+          console.warn('QR Code Scan Error:', errorMessage);
+        }
+      );
+      setScanner(newScanner);
+      setIsScanning(true);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log({ file, medicineName, expiryDate, quantity });
-    dispatch(resetForm());
+    console.log({ scanResult, medicineName, expiryDate, quantity, batchNumber, brand, manufacturerDetails });
+  };
+
+  const handleVerify = () => {
+    console.log({ batchNumber });
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12" id="donate">
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Donate Medicine</h2>
-        
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12" id="donate">
+      <div className="bg-white text-gray-900 rounded-xl shadow-lg p-6">
+        <h2 className="text-3xl font-bold mb-6 text-center text-emerald-600">Scan Medicine QR Code</h2>
+        <button
+          type="button"
+          onClick={startScan}
+          className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg hover:bg-emerald-700 transition mb-4"
+        >
+          Start Scan
+        </button>
+        <div id="qr-reader" className="mb-6 border-2 border-gray-300 rounded-lg p-4 bg-gray-100"></div>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6">
           <div className="space-y-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <div>
+              <label className="block text-sm font-medium">Batch Number</label>
               <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-                id="medicine-image"
+                type="text"
+                value={batchNumber || ''}
+                readOnly
+                className="w-full p-2 rounded-md bg-gray-200 text-gray-900 border border-gray-300"
               />
-              <label
-                htmlFor="medicine-image"
-                className="cursor-pointer flex flex-col items-center space-y-2"
-              >
-                <Upload className="h-8 w-8 text-gray-400" />
-                <span className="text-sm text-gray-500">
-                  Upload medicine package photo
-                </span>
-              </label>
             </div>
-
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="medicine-name" className="block text-sm font-medium text-gray-700">
-                  Medicine Name
-                </label>
-                <input
-                  type="text"
-                  id="medicine-name"
-                  value={medicineName}
-                  onChange={(e) => dispatch(setMedicineName(e.target.value))}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                  placeholder="Enter medicine name"
-                />
-              </div>
-              <div>
-                <label htmlFor="expiry-date" className="block text-sm font-medium text-gray-700">
-                  Expiry Date
-                </label>
-                <input
-                  type="date"
-                  id="expiry-date"
-                  value={expiryDate}
-                  onChange={(e) => dispatch(setExpiryDate(e.target.value))}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                />
-              </div>
-              <div>
-                <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
-                  Quantity
-                </label>
-                <input
-                  type="number"
-                  id="quantity"
-                  min="1"
-                  value={quantity || ''}
-                  onChange={(e) => dispatch(setQuantity(Number(e.target.value)))}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                  placeholder="Enter quantity"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium">Medicine Name</label>
+              <input
+                type="text"
+                value={medicineName || ''}
+                readOnly
+                className="w-full p-2 rounded-md bg-gray-200 text-gray-900 border border-gray-300"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Brand</label>
+              <input
+                type="text"
+                value={brand || ''}
+                readOnly
+                className="w-full p-2 rounded-md bg-gray-200 text-gray-900 border border-gray-300"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Manufacturer Details</label>
+              <input
+                type="text"
+                value={manufacturerDetails || ''}
+                readOnly
+                className="w-full p-2 rounded-md bg-gray-200 text-gray-900 border border-gray-300"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Expiry Date</label>
+              <input
+                type="date"
+                value={expiryDate || ''}
+                readOnly
+                className="w-full p-2 rounded-md bg-gray-200 text-gray-900 border border-gray-300"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Quantity</label>
+              <input
+                type="number"
+                min="1"
+                value={quantity || ''}
+                readOnly
+                className="w-full p-2 rounded-md bg-gray-200 text-gray-900 border border-gray-300"
+              />
             </div>
           </div>
-
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Medicine Details</h3>
-            {file ? (
-              <div className="space-y-4">
-                <div className="bg-white p-4 rounded-md shadow-sm">
-                  <img
-                    src={file}
-                    alt="Medicine package"
-                    className="w-full h-48 object-cover rounded-md"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => dispatch(setFile(null))}
-                  className="text-sm text-emerald-600 hover:text-emerald-700"
-                >
-                  Remove image
-                </button>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">
-                Upload a clear photo of the medicine package to help us verify the details.
-              </p>
-            )}
-
-            <button
-              type="submit"
-              className="mt-6 w-full bg-emerald-600 text-white py-2 px-4 rounded-md hover:bg-emerald-700 transition-colors"
-            >
-              Submit Donation
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg hover:bg-emerald-700 transition"
+          >
+            Submit Donation
+          </button>
+          <button
+            type="button"
+            onClick={handleVerify}
+            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition"
+          >
+            Verify Batch
+          </button>
         </form>
       </div>
     </div>
