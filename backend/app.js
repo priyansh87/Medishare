@@ -18,8 +18,10 @@ const { abi } = require("./artifacts/contracts/Medishare.sol/Medishare.json");
 const API_URL = "http://127.0.0.1:8545"; // Hardhat local node
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
-const provider = new JsonRpcProvider(API_URL);
-
+const provider = new JsonRpcProvider(API_URL, {
+  name: "localhost",
+  chainId: 31337,
+});
 
 const signer = new ethers.Wallet(PRIVATE_KEY, provider);
 export const contractInstance = new ethers.Contract(CONTRACT_ADDRESS, abi, signer);

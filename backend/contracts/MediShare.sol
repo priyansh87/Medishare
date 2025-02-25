@@ -93,15 +93,29 @@ contract Medishare is ERC721Enumerable, Ownable {
         emit MedicineVerified(batchId);
     }
 
+
+
+    /**
+     * @dev Get full details of a medicine batch without modifying state.
+     */
+    function getMedicineDetails(string calldata batchNumber) external view returns (Medicine memory) {
+        bytes32 batchId = keccak256(abi.encodePacked(batchNumber));
+        Medicine memory med = _medicines[batchId];
+        require(med.exists, "Batch not found");
+        return med;
+    }
+
+
+
     /**
      * @dev User verification with automatic state updates
      */
-    function verifyBatch(string calldata batchNumber) external returns (VerificationResult memory) {
+    function verifyBatch(string calldata batchNumber) view external returns (VerificationResult memory) {
         bytes32 batchId = keccak256(abi.encodePacked(batchNumber));
         Medicine storage med = _medicines[batchId];
         require(med.exists, "Batch not found");
         
-        _autoExpireCheck(med);
+        // _autoExpireCheck(med);
 
         return VerificationResult({
             isValid: med.isActive && block.timestamp < med.expiryDate,
@@ -115,30 +129,33 @@ contract Medishare is ERC721Enumerable, Ownable {
         });
     }
 
-    /**
-     * @dev Mint NFT with duplicate prevention safeguards
-     */
-    function authenticateBatch(string calldata batchNumber) external onlyOwner {
-        bytes32 batchId = keccak256(abi.encodePacked(batchNumber));
-        Medicine storage med = _medicines[batchId];
-        require(med.exists, "Batch not found");
-        
-        _autoExpireCheck(med);
-        require(med.isActive, "Medicine expired");
-        require(med.isVerified, "Not verified");
-        require(med.tokenId == 0, "NFT already minted");
+/**
+ * @dev Mint NFT with duplicate prevention safeguards.
+ * Now accepts an address parameter for the NFT recipient.
+ */
+function authenticateBatch(string calldata batchNumber, address recipient) external onlyOwner {
+    bytes32 batchId = keccak256(abi.encodePacked(batchNumber));
+    Medicine storage med = _medicines[batchId];
+    require(med.exists, "Batch not found");
+    
+    _autoExpireCheck(med);
+    require(med.isActive, "Medicine expired");
+    require(med.isVerified, "Not verified");
+    require(med.tokenId == 0, "NFT already minted");
+    require(recipient != med.manufacturer, "Invalid recipient");
 
-        uint256 newTokenId = totalSupply() + 1;
-        _safeMint(med.manufacturer, newTokenId);
-        
-        med.tokenId = newTokenId;
-        med.isAuthenticated = true;
-        med.isNFTValid = true;
-        _tokenToBatch[newTokenId] = batchId;
-        _manufacturerNFTs[med.manufacturer].push(newTokenId);
+    uint256 newTokenId = totalSupply() + 1;
+    _safeMint(recipient, newTokenId);
+    
+    med.tokenId = newTokenId;
+    med.isAuthenticated = true;
+    med.isNFTValid = true;
+    _tokenToBatch[newTokenId] = batchId;
+    _manufacturerNFTs[recipient].push(newTokenId);
 
-        emit MedicineAuthenticated(batchId, newTokenId);
-    }
+    emit MedicineAuthenticated(batchId, newTokenId);
+}
+
 
     /**
      * @dev Automatic expiry check and state update
