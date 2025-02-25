@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import uploadReducer from './slices/uploadSlice';
@@ -7,24 +7,26 @@ import healthReducer from './slices/healthSlice';
 import donationReducer from './slices/donationSlice';
 import authReducer from './slices/authSlice';
 
+// Combine all reducers into one root reducer
+const rootReducer = combineReducers({
+  upload: uploadReducer,
+  ngo: ngoReducer,
+  health: healthReducer,
+  donation: donationReducer,
+  auth: authReducer,
+});
+
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['upload', 'donation', 'auth'], // Added auth to persist
+  whitelist: ['upload', 'donation', 'auth'], // Ensure auth is included
 };
 
-const persistedUploadReducer = persistReducer(persistConfig, uploadReducer);
-const persistedDonationReducer = persistReducer(persistConfig, donationReducer);
-const persistedAuthReducer = persistReducer(persistConfig, authReducer);
+// Wrap the root reducer with persistReducer
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
-  reducer: {
-    upload: persistedUploadReducer,
-    ngo: ngoReducer,
-    health: healthReducer,
-    donation: persistedDonationReducer,
-    auth: persistedAuthReducer,
-  },
+  reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,

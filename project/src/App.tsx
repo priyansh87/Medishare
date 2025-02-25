@@ -7,6 +7,8 @@ import NGOMap from './components/NGOMap';
 import HealthInsights from './components/HealthInsights';
 import Dashboard from './components/Dashboard';
 import ReportAnalysis from './components/ReportAnalysis';
+import LoginPage from './components/LoginPage';
+import Register from './components/RegisterPage';
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
             </main>
           } />
           <Route path="/report-analysis" element={<ReportAnalysis />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<Register />} />
         </Routes>
         <footer className="bg-white border-t border-gray-200 py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

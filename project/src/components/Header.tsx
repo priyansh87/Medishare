@@ -4,18 +4,30 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { login, logout } from '../store/slices/authSlice';
+import { useNavigate } from 'react-router-dom';
+
+import { persistor } from '../store'; // Import persistor
+import axiosInstance from '../config/axios.config';
+
 
 export default function Header() {
+  const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
 
   const handleLogin = () => {
+    navigate('/login')
     dispatch(login({ name: 'User' }));
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    // const response = await axiosInstance.post('/users/logout');
+    dispatch(logout()); // Reset Redux state
+    persistor.purge(); // ✅ Clears persisted Redux store
+    persistor.flush(); // ✅ Ensures changes are applied immediately
+    localStorage.removeItem("token"); // ✅ Remove token from storage
+    navigate("/login"); // Redirect after logout
   };
 
   const menuItems = [
