@@ -1,14 +1,11 @@
-import React from 'react';
-import { Menu, X, PlusCircle, Heart, Map, BarChart3, LogIn, LogOut } from 'lucide-react';
+import { Menu, X, PlusCircle, Heart, Map, BarChart3, LogIn, LogOut, ShoppingBag } from 'lucide-react';
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { login, logout } from '../store/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 
-import { persistor } from '../store'; // Import persistor
-import axiosInstance from '../config/axios.config';
-
+import { persistor } from '../store';
 
 export default function Header() {
   const navigate = useNavigate()
@@ -22,12 +19,11 @@ export default function Header() {
   };
 
   const handleLogout = async () => {
-    // const response = await axiosInstance.post('/users/logout');
-    dispatch(logout()); // Reset Redux state
-    persistor.purge(); // ✅ Clears persisted Redux store
-    persistor.flush(); // ✅ Ensures changes are applied immediately
-    localStorage.removeItem("token"); // ✅ Remove token from storage
-    navigate("/login"); // Redirect after logout
+    dispatch(logout());
+    persistor.purge();
+    persistor.flush();
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
   const menuItems = [
@@ -45,7 +41,6 @@ export default function Header() {
             <span className="text-2xl font-bold text-emerald-600">MediShare</span>
           </div>
 
-          {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
             {menuItems.map((item) => (
               <a
@@ -57,6 +52,14 @@ export default function Header() {
                 <span>{item.name}</span>
               </a>
             ))}
+            
+            <a
+              href="/store"
+              className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition-colors"
+            >
+              <ShoppingBag className="h-5 w-5" />
+              <span>Store</span>
+            </a>
 
             <div className="flex items-center space-x-4">
               {!isAuthenticated ? (
@@ -82,25 +85,7 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center space-x-4">
-            {!isAuthenticated ? (
-              <button
-                onClick={handleLogin}
-                className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition-colors"
-              >
-                <LogIn className="h-4 w-4" />
-                <span>Log In</span>
-              </button>
-            ) : (
-              <button
-                onClick={handleLogout}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Log Out</span>
-              </button>
-            )}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-gray-700"
@@ -110,7 +95,6 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden">
             <div className="pt-2 pb-3 space-y-1">
@@ -124,6 +108,14 @@ export default function Header() {
                   <span>{item.name}</span>
                 </a>
               ))}
+              
+              <a
+                href="/store"
+                className="flex items-center space-x-2 px-3 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors"
+              >
+                <ShoppingBag className="h-5 w-5" />
+                <span>Store</span>
+              </a>
             </div>
           </div>
         )}

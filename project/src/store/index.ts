@@ -19,7 +19,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['upload', 'donation', 'auth'], // Ensure auth is included
+  whitelist: [ 'donation', 'auth'], // Ensure auth is included
 };
 
 // Wrap the root reducer with persistReducer
