@@ -1,0 +1,14 @@
+import mongoose from "mongoose";
+
+const medicineSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    description: { type: String },
+    price: { type: Number, required: true },
+    quantity: { type: Number, required: true },
+    expirationDate: { type: Date, required: true },
+    donatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Tracking donor
+    
+});
+  
+export const Medicne = mongoose.model("Medicine", medicineSchema);
+  
