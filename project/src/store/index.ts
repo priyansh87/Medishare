@@ -6,7 +6,7 @@ import ngoReducer from './slices/ngoSlice';
 import healthReducer from './slices/healthSlice';
 import donationReducer from './slices/donationSlice';
 import authReducer from './slices/authSlice';
-
+import cartReducer from './slices/cartSlice'
 // Combine all reducers into one root reducer
 const rootReducer = combineReducers({
   upload: uploadReducer,
@@ -14,6 +14,7 @@ const rootReducer = combineReducers({
   health: healthReducer,
   donation: donationReducer,
   auth: authReducer,
+  cart: cartReducer
 });
 
 const persistConfig = {

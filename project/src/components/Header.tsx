@@ -8,13 +8,13 @@ import { useNavigate } from 'react-router-dom';
 import { persistor } from '../store';
 
 export default function Header() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
 
   const handleLogin = () => {
-    navigate('/login')
+    navigate('/login');
     dispatch(login({ name: 'User' }));
   };
 
@@ -37,7 +37,7 @@ export default function Header() {
     <header className="bg-white shadow-sm fixed w-full top-0 z-50">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex items-center">
+          <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}> 
             <span className="text-2xl font-bold text-emerald-600">MediShare</span>
           </div>
 

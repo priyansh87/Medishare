@@ -10,8 +10,10 @@ const orderSchema = new mongoose.Schema({
     },
   ],
   totalAmount: { type: Number, required: true },
-  paymentStatus: { type: String, enum: ["pending", "paid", "failed"], default: "pending" },
-  orderStatus: { type: String, enum: ["processing", "shipped", "delivered", "cancelled"], default: "processing" },
+  stripeSessionId: {
+    type: String,
+    unique: true,
+  },
   createdAt: { type: Date, default: Date.now },
 });
 export const Order = mongoose.model("Order", orderSchema);

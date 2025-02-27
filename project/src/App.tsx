@@ -12,6 +12,7 @@ import Register from './components/RegisterPage';
 import MedicineEcommerce from './components/Ecommerce';
 import Checkout from './components/Checkout';
 import AdminPanel from './components/AdminPanel';
+import OrderSummary from './components/OrderSummary';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Route path="/store" element={<MedicineEcommerce />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/order-summary" element={<OrderSummary />} />
 
         </Routes>
         <footer className="bg-white border-t border-gray-200 py-8">

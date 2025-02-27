@@ -1,37 +1,48 @@
-
-
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, Filter, ShoppingCart } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useDispatch, useSelector } from "react-redux"
+import axiosInstance from "../config/axios.config"
+import { addToCart } from "../store/slices/cartSlice"
+import type { RootState } from "../store"
 
 interface Medicine {
-  id: number
+  _id: string
   name: string
   description: string
   price: number
+  quantity: number
+  expirationDate: string
+  donatedBy: string
 }
 
-const medicines: Medicine[] = [
-  { id: 1, name: "Paracetamol", description: "Pain reliever and fever reducer", price: 5 },
-  { id: 2, name: "Amoxicillin", description: "Antibiotic for bacterial infections", price: 10 },
-  { id: 3, name: "Ibuprofen", description: "Anti-inflammatory and pain reliever", price: 7 },
-  { id: 4, name: "Omeprazole", description: "Reduces stomach acid production", price: 15 },
-  { id: 5, name: "Metformin", description: "Oral diabetes medicine", price: 12 },
-  { id: 6, name: "Lisinopril", description: "ACE inhibitor for high blood pressure", price: 20 },
-]
-
 const MedicineEcommerce: React.FC = () => {
-  const [cart, setCart] = useState<Medicine[]>([])
+  const [medicines, setMedicines] = useState<Medicine[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const cartItems = useSelector((state: RootState) => state.cart.items)
 
-  const addToCart = (medicine: Medicine) => {
-    setCart([...cart, medicine])
+  useEffect(() => {
+    const fetchMedicines = async () => {
+      try {
+        const response = await axiosInstance.get("/ecommerce/medicine")
+        setMedicines(response.data)
+      } catch (error) {
+        console.error("Error fetching medicines:", error)
+      }
+    }
+
+    fetchMedicines()
+  }, [])
+
+  const handleAddToCart = (medicine: Medicine) => {
+    dispatch(addToCart({ ...medicine, quantity: 1 }))
   }
 
-  const goToCheckout = () => {
-    navigate("/checkout")
+  const goToOrderSummary = () => {
+    navigate("/order-summary")
   }
 
   const filteredMedicines = medicines.filter((medicine) =>
@@ -40,8 +51,6 @@ const MedicineEcommerce: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 mt-16">
-      {/* <h1 className="text-3xl font-bold text-emerald-600 mb-8">Medicine Donation Store</h1> */}
-
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 space-y-4 sm:space-y-0">
         <div className="relative w-full sm:w-auto">
           <input
@@ -61,14 +70,14 @@ const MedicineEcommerce: React.FC = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredMedicines.map((medicine) => (
-          <div key={medicine.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div key={medicine._id} className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="p-4">
               <h2 className="text-xl font-semibold text-gray-800 mb-2">{medicine.name}</h2>
               <p className="text-gray-600 mb-4">{medicine.description}</p>
               <div className="flex justify-between items-center">
                 <span className="text-emerald-600 font-bold">${medicine.price.toFixed(2)}</span>
                 <button
-                  onClick={() => addToCart(medicine)}
+                  onClick={() => handleAddToCart(medicine)}
                   className="bg-emerald-500 text-white px-4 py-2 rounded-md hover:bg-emerald-600 transition-colors"
                 >
                   Add to Cart
@@ -81,13 +90,13 @@ const MedicineEcommerce: React.FC = () => {
 
       <div className="fixed bottom-4 right-4">
         <button
-          onClick={goToCheckout}
-          className="bg-emerald-500 text-white p-4 rounded-full shadow-lg hover:bg-emerald-600 transition-colors"
+          onClick={goToOrderSummary}
+          className="bg-emerald-500 text-white p-4 rounded-full shadow-lg hover:bg-emerald-600 transition-colors relative"
         >
           <ShoppingCart size={24} />
-          {cart.length > 0 && (
+          {cartItems.length > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
-              {cart.length}
+              {cartItems.length}
             </span>
           )}
         </button>

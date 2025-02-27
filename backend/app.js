@@ -11,7 +11,7 @@ dotenv.config() ;
 import { ethers } from 'ethers';
 import { createRequire } from 'module';
 import { JsonRpcProvider, Wallet, Contract } from 'ethers';
-
+import medicineRoute from "./routes/medicine.routes.js"
 const require = createRequire(import.meta.url);
 const { abi } = require("./artifacts/contracts/Medishare.sol/Medishare.json");
 
@@ -52,7 +52,7 @@ app.get("/", (req, res) => {
 // routes 
 app.use("/users", userRoute);
 app.use("/chain", blockChainRoute);
-
+app.use("/ecommerce", medicineRoute);
 
 export default app;
 
