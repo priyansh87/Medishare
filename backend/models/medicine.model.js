@@ -5,7 +5,7 @@ const medicineSchema = new mongoose.Schema({
     description: { type: String },
     price: { type: Number, required: true },
     quantity: { type: Number, required: true },
-    expirationDate: { type: Date, required: true },
+    expirationDate: { type: Date }, // required true later 
     donatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Tracking donor
     
 });

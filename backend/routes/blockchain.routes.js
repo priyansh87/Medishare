@@ -90,10 +90,11 @@ router.post("/api/nfts/mint", async (req, res) => {
 
 // 📌 Route to fetch batch details
 router.get("/api/verify/:batchNumber", async (req, res) => {
+    let batchData ;
     try {
         const batchNumber = req.params.batchNumber;
         // Use callStatic to simulate the call
-        const batchData = await contractInstance.verifyBatch(batchNumber);
+         batchData = await contractInstance.verifyBatch(batchNumber);
         console.log(batchData.data)
         // Format the response
         const formattedResponse = {
@@ -110,8 +111,8 @@ router.get("/api/verify/:batchNumber", async (req, res) => {
         };
         res.json(formattedResponse);
     } catch (error) {
-        console.error("Error fetching batch details:", error);
-        res.status(500).json({ error: "Failed to fetch batch details" });
+        console.error("Error fetching batch details: batch not found ", error );
+        res.status(500).json({ error: "Failed to fetch batch details , batch not found", success:"false" });
     }
 });
 

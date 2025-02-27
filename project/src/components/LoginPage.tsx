@@ -26,12 +26,12 @@ export default function LoginPage(): JSX.Element {
     try {
       const response = await axiosInstance.post("/users/login", { email, password });
 
-      if (response.data.token) {
+      if (response.data.token && response.data.user) {
         localStorage.setItem("token", response.data.token);
 
-        // Extract name from response and store in Redux
-        const userName = response.data.user?.name || "User";
-        dispatch(loginAction({ name: userName }));
+        // Extract user details and store in Redux
+        const { id, name, email, role } = response.data.user;
+        dispatch(loginAction({ id, name, email, role }));
 
         setMessage("Login successful!");
         setIsSuccess(true);
@@ -39,7 +39,7 @@ export default function LoginPage(): JSX.Element {
       } else {
         throw new Error("Invalid response from server.");
       }
-    } catch (error: any) {
+    } catch (error) {
       setMessage("Login failed. Please check your credentials.");
       setIsSuccess(false);
     }

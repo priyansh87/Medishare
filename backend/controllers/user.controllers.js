@@ -1,4 +1,4 @@
-import { User } from "../models/user.model.js";
+import {User} from "../models/user.model.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -11,11 +11,15 @@ export const uploadMedicalReport = async ( req , res ) => {
 // Register User
 export const registerUser = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password , role} = req.body;
 
         // Validate input fields
         if (!name || !email || !password) {
             return res.status(400).json({ message: "All fields are required" });
+        }
+
+        if( !role ) {
+            role = 'user'
         }
 
         if (password.length < 6) {
@@ -27,7 +31,7 @@ export const registerUser = async (req, res) => {
             return res.status(400).json({ message: "User already exists" });
         }
 
-        user = new User({ name, email, password });
+        user = new User({ name, email, password , role });
         await user.save();
 
         res.status(201).json({ message: "User registered successfully" });
@@ -45,20 +49,25 @@ export const loginUser = async (req, res) => {
         if (!email || !password) {
             return res.status(400).json({ message: "Email and password are required" });
         }
+        // console.log("in user controller ")
 
         const user = await User.findOne({ email });
+        // console.log(user) ;
         if (!user) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
+            
             return res.status(400).json({ message: "Invalid credentials" });
+
         }
+        // console.log("Password matched" , isMatch)
 
         // Generate JWT Token
         const token = await user.generateJWT();
-
+        console.log("token" , token)
         // Set token in cookies (HTTP-Only)
         res.cookie("token", token, {
             httpOnly: true,
@@ -75,6 +84,7 @@ export const loginUser = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
+                role:user.role,
             },
         });
     } catch (error) {

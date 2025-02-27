@@ -1,23 +1,16 @@
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
-import dotenv from 'dotenv' 
-dotenv.config() ;
+dotenv.config();
 
 const authMiddleware = async (req, res, next) => {
     let token;
 
-    // Check if the token is in the Authorization header
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
-           
-            token = req.headers.authorization.split(' ')[1];  
-
-            // Decode and verify the token
+            token = req.headers.authorization.split(' ')[1];
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-            
-            req.user = decoded;
-
+            req.user = decoded;  // Inject user details in request
             return next();
         } catch (error) {
             console.log("JWT Error:", error);
@@ -25,18 +18,12 @@ const authMiddleware = async (req, res, next) => {
         }
     }
 
-    // If no token in header, check cookies (useful for persistent login across page reloads)
     if (req.cookies.token) {
         try {
             token = req.cookies.token;
-
-            
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-           
             req.user = decoded;
-            console.log("user injected in req.user" , decoded)
-
+            console.log("User injected in req.user:", decoded);
             return next();
         } catch (error) {
             console.log("JWT Error:", error);
@@ -44,8 +31,16 @@ const authMiddleware = async (req, res, next) => {
         }
     }
 
-    
     return res.status(401).json({ success: false, message: 'User not logged in' });
 };
 
-export default authMiddleware;
+// Middleware to check if the user is an admin
+const verifyAdmin = (req, res, next) => {
+    if (!req.user || req.user.role !== 'admin') {
+        console.log("verify admin called")
+        return res.status(403).json({ success: false, message: 'Access denied. Admin only.' });
+    }
+    next();
+};
+
+export { authMiddleware, verifyAdmin };
