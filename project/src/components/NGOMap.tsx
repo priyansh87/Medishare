@@ -75,10 +75,8 @@ export default function NGOMap() {
       distance: '9 km',
       coordinates: [28.5451, 77.2555], // Kalkaji
     }
-  ]
+  ];
   
-  
-
   // Create custom icon outside of the effect to prevent recreation on rerenders
   const defaultIcon = L.icon({
     iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -174,37 +172,39 @@ export default function NGOMap() {
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Nearby NGOs</h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 bg-gray-100 rounded-lg overflow-hidden" style={{ minHeight: '400px' }}>
+          <div className="lg:col-span-2 bg-gray-100 rounded-lg overflow-hidden" style={{ height: '400px' }}>
             <div 
               ref={mapContainerRef} 
               id="map-container" 
-              style={{ height: '400px', width: '100%' }}
+              style={{ height: '100%', width: '100%' }}
             ></div>
           </div>
-          <div className="space-y-4">
-            {mockNGOs.map((ngo) => (
-              <div
-                key={ngo.id}
-                className={`bg-white border rounded-lg p-4 transition-shadow cursor-pointer ${
-                  selectedNGO === ngo.id 
-                    ? 'border-emerald-500 shadow-md' 
-                    : 'border-gray-200 hover:shadow-md'
-                }`}
-                onClick={() => setSelectedNGO(ngo.id)}
-              >
-                <div className="flex items-start space-x-3">
-                  <MapPin className="h-5 w-5 text-emerald-500 mt-1" />
-                  <div>
-                    <h3 className="font-medium text-gray-900">{ngo.name}</h3>
-                    <p className="text-sm text-gray-500">{ngo.address}</p>
-                    <p className="text-sm text-emerald-600 mt-1">{ngo.distance}</p>
-                    <div className="text-xs text-gray-400 mt-1">
-                      {ngo.coordinates[0].toFixed(4)}, {ngo.coordinates[1].toFixed(4)}
+          <div className="h-96 md:h-auto lg:h-96 overflow-y-auto pr-2 pb-2">
+            <div className="space-y-3">
+              {mockNGOs.map((ngo) => (
+                <div
+                  key={ngo.id}
+                  className={`bg-white border rounded-lg p-3 transition-shadow cursor-pointer ${
+                    selectedNGO === ngo.id 
+                      ? 'border-emerald-500 shadow-md' 
+                      : 'border-gray-200 hover:shadow-md'
+                  }`}
+                  onClick={() => setSelectedNGO(ngo.id)}
+                >
+                  <div className="flex items-start space-x-3">
+                    <MapPin className="h-5 w-5 text-emerald-500 mt-1 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-medium text-gray-900 truncate">{ngo.name}</h3>
+                      <p className="text-sm text-gray-500 break-words">{ngo.address}</p>
+                      {/* <p className="text-sm text-emerald-600 mt-1">{ngo.distance}</p> */}
+                      <div className="text-xs text-gray-400 mt-1">
+                        {ngo.coordinates[0].toFixed(4)}, {ngo.coordinates[1].toFixed(4)}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>

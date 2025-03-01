@@ -142,7 +142,7 @@ function authenticateBatch(string calldata batchNumber, address recipient) exter
     require(med.isActive, "Medicine expired");
     require(med.isVerified, "Not verified");
     require(med.tokenId == 0, "NFT already minted");
-    require(recipient != med.manufacturer, "Invalid recipient");
+    require(recipient == med.manufacturer, "Invalid recipient");
 
     uint256 newTokenId = totalSupply() + 1;
     _safeMint(recipient, newTokenId);

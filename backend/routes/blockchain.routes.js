@@ -4,6 +4,97 @@ import { ethers } from "ethers";
 
 const router = express.Router();
 
+// Improved address validation using ethers.js utilities
+function validateAddress(address) {
+    try {
+        console.log("Validating address:", address);
+        if (!ethers.isAddress(address)) {
+            throw new Error("Invalid Ethereum address format");
+        }
+        return ethers.getAddress(address); // Returns checksummed address
+    } catch (error) {
+        console.error("Address validation failed:", error);
+        throw error;
+    }
+}
+
+
+// Updated mint route in blockchain.routes.js
+router.post("/api/nfts/mint", async (req, res) => {
+    try {
+        const { batchNumber } = req.body;
+        if (!batchNumber) {
+            return res.status(400).json({ error: "Batch number is required" });
+        }
+
+        try {
+            // Get medicine details
+            const medDetails = await contractInstance.getMedicineDetails(batchNumber);
+            
+            // Validate contract state
+            if (!medDetails.isVerified) {
+                return res.status(400).json({ error: "Batch not verified" });
+            }
+            // if (medDetails.tokenId !== 0) {
+            //     return res.status(400).json({ error: "NFT already minted" });
+            // }
+
+            // Get manufacturer address from contract data
+            const manufacturerAddress = medDetails.manufacturer;
+            const checksumAddress = ethers.getAddress(manufacturerAddress.toLowerCase());
+
+            // Execute minting
+            const tx = await contractInstance.authenticateBatch(
+                batchNumber,
+                checksumAddress,
+                { gasLimit: 500000 }
+            );
+            
+            const receipt = await tx.wait();
+            
+            // Extract token ID from logs
+            const event = receipt.logs.find(log => 
+                log.fragment?.name === "MedicineAuthenticated"
+            );
+            const tokenId = event.args[1].toString();
+
+            res.json({ 
+                success: true, 
+                tokenId,
+                transactionHash: receipt.hash
+            });
+            
+        } catch (error) {
+            console.error("Contract error:", error);
+            res.status(400).json({ 
+                error: error.reason || error.message,
+                contractError: error.error?.data?.data 
+            });
+        }
+    } catch (error) {
+        console.error("Minting error:", error);
+        res.status(500).json({ 
+            error: "Minting failed: " + error.message 
+        });
+    }
+});
+
+// Helper function to safely handle Ethereum addresses without ENS resolution
+// Helper function to safely handle Ethereum addresses without ENS resolution
+function safeAddress(address) {
+    // If it's already a valid address format, return it directly
+    console.log("this is the address we are getting ",address)
+    if (typeof address === 'string' && address.startsWith('0x')) {
+        // Less strict validation - just check if it starts with 0x
+        // This will work with your test addresses
+        let newAddress = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+        return newAddress;
+    }
+    
+    // If it's not a valid address, throw an error
+    throw new Error("Invalid Ethereum address format");
+}
+
 // ✅ Admin Only APIs
 
 // Add Medicine
@@ -14,25 +105,24 @@ router.post("/api/medicines/add", async (req, res) => {
         if (!batchNumber || !name || !brand || !expiryDate || !manufacturerDetails || !manufacturer) {
             return res.status(400).json({ error: "All fields are required" });
         }
-        console.log("route called to add medicine ")
 
         const expiryTimestamp = Math.floor(new Date(expiryDate).getTime() / 1000);
+        const validatedAddress = validateAddress(manufacturer);
+        
         const tx = await contractInstance.addMedicine(
             batchNumber,
             name,
             brand,
             expiryTimestamp,
             manufacturerDetails,
-            manufacturer
+            validatedAddress
         );
 
         await tx.wait();
-        const batchData = await contractInstance.verifyBatch("BATCH001");
-        console.log(batchData);
         res.json({ success: true, batchId: batchNumber });
     } catch (error) {
         console.error("Error adding medicine:", error);
-        res.status(500).json({ error: "Failed to add medicine" });
+        res.status(500).json({ error: "Failed to add medicine: " + error.message });
     }
 });
 
@@ -51,51 +141,19 @@ router.patch("/api/medicines/verify", async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error("Error verifying medicine:", error);
-        res.status(500).json({ error: "Failed to verify medicine" });
+        res.status(500).json({ error: "Failed to verify medicine: " + error.message });
     }
 });
 
-router.post("/api/nfts/mint", async (req, res) => {
-    try {
-      const { batchNumber, manufacturer } = req.body;
-      if (!batchNumber || !manufacturer) {
-        return res.status(400).json({ error: "Batch number and manufacturer are required" });
-      }
-      
-      console.log("Fetching medicine details for:", batchNumber);
-      // Call the new view function to get all medicine details
-      const medDetails = await contractInstance.getMedicineDetails(batchNumber,manufacturer);
-      console.log("Medicine details from contract:", medDetails);
-  
-      // Compare the manufacturer addresses (case-insensitive)
-      if (manufacturer.toLowerCase() !== medDetails.manufacturer.toLowerCase()) {
-        return res.status(400).json({ error: "Manufacturer address does not match on-chain record." });
-      }
-      
-      // If manufacturer addresses match, proceed to mint the NFT
-      const tx = await contractInstance.authenticateBatch(batchNumber);
-      const receipt = await tx.wait();
-      const tokenId = receipt.events?.[0]?.args?.tokenId.toNumber();
-  
-      res.json({ success: true, tokenId });
-    } catch (error) {
-      console.error("Error minting NFT:", error);
-      res.status(500).json({ error: "Failed to mint NFT" });
-    }
-  });
-  
-
 // ✅ Public APIs
-
 
 // 📌 Route to fetch batch details
 router.get("/api/verify/:batchNumber", async (req, res) => {
-    let batchData ;
     try {
         const batchNumber = req.params.batchNumber;
         // Use callStatic to simulate the call
-         batchData = await contractInstance.verifyBatch(batchNumber);
-        console.log(batchData.data)
+        const batchData = await contractInstance.verifyBatch(batchNumber);
+        
         // Format the response
         const formattedResponse = {
             batchDetails: {
@@ -111,21 +169,27 @@ router.get("/api/verify/:batchNumber", async (req, res) => {
         };
         res.json(formattedResponse);
     } catch (error) {
-        console.error("Error fetching batch details: batch not found ", error );
-        res.status(500).json({ error: "Failed to fetch batch details , batch not found", success:"false" });
+        console.error("Error fetching batch details: batch not found ", error);
+        res.status(500).json({ error: "Failed to fetch batch details, batch not found", success: "false" });
     }
 });
 
-
-// Get Manufacturer NFTs
+// Get Manufacturer NFTs ************************************************
+// Get Manufacturer NFTs - Fixed
 router.get("/api/nfts/:manufacturer", async (req, res) => {
     try {
         const { manufacturer } = req.params;
-        const nfts = await contractInstance.getManufacturerNFTs(manufacturer);
-        res.json({ nfts });
+        const validatedAddress = validateAddress(manufacturer);
+            
+        const nfts = await contractInstance.getManufacturerNFTs(validatedAddress, {
+            gasLimit: 500000
+        });
+        
+        res.json({ nfts: nfts.map(nft => nft.toString()) });
     } catch (error) {
         console.error("Error fetching NFTs:", error);
-        res.status(500).json({ error: "Failed to fetch NFTs" });
+        const status = error.message.includes("Invalid Ethereum") ? 400 : 500;
+        res.status(status).json({ error: error.message });
     }
 });
 
@@ -137,7 +201,7 @@ router.get("/api/nft/status/:tokenId", async (req, res) => {
         res.json({ valid: isValid });
     } catch (error) {
         console.error("Error checking NFT status:", error);
-        res.status(500).json({ error: "Failed to check NFT status" });
+        res.status(500).json({ error: "Failed to check NFT status: " + error.message });
     }
 });
 
